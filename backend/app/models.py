@@ -10,6 +10,7 @@ from sqlalchemy import (
     UniqueConstraint,
     Index,
     func,
+    CheckConstraint,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -98,10 +99,6 @@ class SavedVacancy(Base):
 
 class Application(Base):
     __tablename__ = "applications"
-    __table_args__ = (
-        Index("ix_applications_user_updated", "user_id", "updated_at"),
-    )
-
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=new_uuid
     )
@@ -125,6 +122,24 @@ class Application(Base):
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
+    )
+    __table_args__ = (
+        Index(
+            "ix_applications_user_updated",
+            "user_id",
+            "updated_at",
+        ),
+        CheckConstraint(
+            "status IN ("
+            "'applied', "
+            "'hr_interview', "
+            "'technical_interview', "
+            "'test_task', "
+            "'offer', "
+            "'rejected'"
+            ")",
+            name="ck_applications_status",
+        ),
     )
 
 
