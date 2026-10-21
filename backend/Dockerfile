@@ -10,6 +10,7 @@ COPY app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini .
 COPY main.py .
+COPY tests/ ./tests/
 
 EXPOSE 8000
 

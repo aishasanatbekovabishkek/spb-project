@@ -64,6 +64,50 @@ services:
       retries: 10
 
 
+  
+  test-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: job_tracker_test
+      POSTGRES_USER: job_tracker_test
+      POSTGRES_PASSWORD: test_password
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U job_tracker_test -d job_tracker_test
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    profiles:
+      - testing
+
+
+  
+  tests:
+    build:
+      context: ./backend
+
+    profiles:
+      - testing
+
+    environment:
+      DATABASE_URL: postgresql+psycopg://job_tracker_test:test_password@test-db:5432/job_tracker_test
+
+    depends_on:
+      test-db:
+        condition: service_healthy
+
+    command:
+      - sh
+      - -c
+      - |
+        alembic upgrade head &&
+        python -m pytest tests/ -v
+
+    restart: "no"
+
+
+
 
 volumes:
   postgres_data:

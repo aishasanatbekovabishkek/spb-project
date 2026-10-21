@@ -1,0 +1,31 @@
+name: Backend Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create environment file
+        run: |
+          echo "POSTGRES_PASSWORD=ci_test_password" > .env
+
+      - name: Build and run database tests
+        run: |
+          docker compose --profile testing run --build --rm tests
+
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          docker compose --profile testing logs test-db
+
+      - name: Stop containers
+        if: always()
+        run: |
+          docker compose --profile testing down
