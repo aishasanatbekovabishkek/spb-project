@@ -15,6 +15,7 @@ jobs:
       - name: Create environment file
         run: |
           echo "POSTGRES_PASSWORD=ci_test_password" > .env
+          echo "JWT_SECRET=ci_test_secret_at_least_32_characters_long" >> .env
 
       - name: Build and run database tests
         run: |
