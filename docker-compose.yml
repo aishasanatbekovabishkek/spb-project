@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
 
     ports:
-      - "127.0.0.1:5433:5432"
+      - "127.0.0.1:5434:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -38,12 +38,13 @@ services:
     build:
       context: ./backend
     ports:
-      - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8001:8000"
     environment:
       DATABASE_URL: postgresql+psycopg://job_tracker:${POSTGRES_PASSWORD}@db:5432/job_tracker
       REDIS_URL: redis://redis:6379/0
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       HH_USER_AGENT: ${HH_USER_AGENT:-JobApplicationTracker/0.1}
+      VACANCY_PROVIDER_MODE: ${VACANCY_PROVIDER_MODE:-hh}
     depends_on:
       migrate:
         condition: service_completed_successfully

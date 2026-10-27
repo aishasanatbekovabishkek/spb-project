@@ -348,3 +348,90 @@ def test_status_and_history_rollback_together(client, auth):
         headers=auth,
     ).json()["items"]
     assert len(history) == 1
+
+def test_demo_source_full_mvp_flow(client, auth, monkeypatch):
+    from main import app
+    from app.provider import get_provider
+
+    monkeypatch.setattr(settings, "vacancy_provider_mode", "demo")
+    app.dependency_overrides.pop(get_provider, None)
+
+    search = client.get(
+        "/api/v1/vacancies",
+        params={"query": "Python", "page": 1, "per_page": 20},
+    )
+    assert search.status_code == 200
+    assert search.json()["total"] == 3
+    assert all(
+        item["source"] == "demo"
+        for item in search.json()["items"]
+    )
+
+    vacancy_ref = {
+        "source": "demo",
+        "external_id": "1001",
+    }
+
+    details = client.get("/api/v1/vacancies/demo/1001")
+    assert details.status_code == 200
+    assert details.json()["title"] == "Python-разработчик"
+    assert details.json()["description"]
+
+    saved = client.post(
+        "/api/v1/saved-vacancies",
+        json=vacancy_ref,
+        headers=auth,
+    )
+    assert saved.status_code == 201
+
+    saved_list = client.get(
+        "/api/v1/saved-vacancies",
+        headers=auth,
+    )
+    assert saved_list.json()["total"] == 1
+
+    created = client.post(
+        "/api/v1/applications",
+        json=vacancy_ref,
+        headers=auth,
+    )
+    assert created.status_code == 201
+    assert created.json()["status"] == "applied"
+
+    application_path = (
+        "/api/v1/applications/" + created.json()["id"]
+    )
+
+    updated = client.patch(
+        application_path + "/status",
+        json={"status": "hr_interview"},
+        headers=auth,
+    )
+    assert updated.status_code == 200
+    assert updated.json()["status"] == "hr_interview"
+
+    history = client.get(
+        application_path + "/history",
+        headers=auth,
+    ).json()["items"]
+
+    assert [
+        (entry["old_status"], entry["new_status"])
+        for entry in history
+    ] == [
+        (None, "applied"),
+        ("applied", "hr_interview"),
+    ]
+
+    saved_again = client.get(
+        "/api/v1/saved-vacancies",
+        headers=auth,
+    )
+    applications_again = client.get(
+        "/api/v1/applications",
+        headers=auth,
+    )
+
+    assert saved_again.json()["total"] == 1
+    assert applications_again.json()["total"] == 1
+    assert applications_again.json()["items"][0]["status"] == "hr_interview"

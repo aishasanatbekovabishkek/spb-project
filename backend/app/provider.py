@@ -12,7 +12,7 @@ from redis.exceptions import RedisError
 
 from app.config import settings
 from app.errors import APIError
-
+from app.demo_provider import DemoVacancyProvider
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +260,10 @@ class VacancyProvider:
 
 
 provider = VacancyProvider()
+demo_provider = DemoVacancyProvider()
 
 
 def get_provider():
+    if settings.vacancy_provider_mode == "demo":
+        return demo_provider
     return provider

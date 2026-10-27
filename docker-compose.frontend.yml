@@ -4,6 +4,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_MODE: ${VITE_API_MODE:-false}
 
     ports:
       - "127.0.0.1:8080:80"

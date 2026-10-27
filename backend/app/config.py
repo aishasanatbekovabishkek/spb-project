@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -11,6 +12,7 @@ class Settings(BaseSettings):
     jwt_secret: str = ""
     jwt_expire_minutes: int = Field(default=60, ge=1)
     hh_user_agent: str = "JobApplicationTracker/0.1"
+    vacancy_provider_mode: Literal["hh", "demo"] = "hh"
     provider_timeout_seconds: float = Field(default=3.0, gt=0, le=5)
     provider_min_interval_seconds: float = Field(default=0.2, ge=0.01)
     cache_fresh_seconds: int = Field(default=600, ge=1)

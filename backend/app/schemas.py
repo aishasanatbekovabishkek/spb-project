@@ -15,7 +15,7 @@ class Credentials(BaseModel):
 
 
 class VacancyRef(BaseModel):
-    source: str = Field(pattern=r"^hh$")
+    source: str = Field(pattern=r"^(hh|demo)$")
     external_id: str = Field(
         min_length=1,
         max_length=255,
