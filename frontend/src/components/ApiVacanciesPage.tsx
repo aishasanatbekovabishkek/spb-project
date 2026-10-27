@@ -1,3 +1,4 @@
+
 import { useEffect, useState, type FormEvent } from 'react'
 import {
   Search,
@@ -5,38 +6,69 @@ import {
   RefreshCw,
   AlertTriangle,
   BriefcaseBusiness,
+  Bookmark,
+  Send,
 } from 'lucide-react'
 
 import {
   searchVacancies,
   type Vacancy,
 } from '../services/vacancies'
+import { saveVacancy } from '../services/savedVacancies'
+import { createApplication } from '../services/applications'
 import { ApiError } from '../services/api'
+
+const PER_PAGE = 20
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 401) {
+      return 'Сначала войдите в аккаунт.'
+    }
+
+    if (error.status === 409) {
+      return 'Эта вакансия уже добавлена.'
+    }
+
+    return error.message
+  }
+
+  return 'Не удалось выполнить действие.'
+}
 
 export default function ApiVacanciesPage() {
   const [input, setInput] = useState('Python')
   const [query, setQuery] = useState('Python')
+  const [page, setPage] = useState(1)
 
   const [vacancies, setVacancies] = useState<Vacancy[]>([])
-  const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const [isStale, setIsStale] = useState(false)
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [busyKey, setBusyKey] = useState<string | null>(null)
+
+  const [savedKeys, setSavedKeys] = useState<string[]>([])
+  const [appliedKeys, setAppliedKeys] = useState<string[]>([])
 
   useEffect(() => {
     const controller = new AbortController()
 
-    async function loadVacancies() {
+    async function load() {
       setLoading(true)
       setError(null)
+      setNotice(null)
+      setVacancies([])
+      setTotal(0)
+      setIsStale(false)
 
       try {
         const result = await searchVacancies(
           query,
           page,
-          20,
+          PER_PAGE,
           controller.signal,
         )
 
@@ -48,26 +80,19 @@ export default function ApiVacanciesPage() {
       } catch (err) {
         if (controller.signal.aborted) return
 
-        setVacancies([])
-        setTotal(0)
-        setIsStale(false)
-
-        if (err instanceof ApiError) {
-          if (err.status === 404) {
-            setError(
-              'Поиск через API пока недоступен. ' +
-              'Возможно, backend ещё не реализован.',
-            )
-          } else if (err.status === 503) {
-            setError(
-              'Сервис вакансий временно недоступен. ' +
-              'Попробуйте повторить запрос позже.',
-            )
-          } else {
-            setError(err.message)
-          }
+        if (err instanceof ApiError && err.status === 404) {
+          setError(
+            'Маршрут поиска вакансий ещё не реализован на сервере.',
+          )
+        } else if (
+          err instanceof ApiError &&
+          err.status === 503
+        ) {
+          setError(
+            'Сервис вакансий временно недоступен.',
+          )
         } else {
-          setError('Не удалось загрузить вакансии.')
+          setError(getErrorMessage(err))
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -76,7 +101,7 @@ export default function ApiVacanciesPage() {
       }
     }
 
-    void loadVacancies()
+    void load()
 
     return () => controller.abort()
   }, [query, page])
@@ -84,15 +109,78 @@ export default function ApiVacanciesPage() {
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const nextQuery = input.trim()
+    const value = input.trim()
 
-    if (!nextQuery) {
-      setError('Введите название вакансии.')
+    if (!value) {
+      setError('Введите поисковый запрос.')
       return
     }
 
-    setQuery(nextQuery)
-    setPage(1)
+    setError(null)
+
+    if (value === query && page === 1) {
+      setQuery('')
+      queueMicrotask(() => setQuery(value))
+    } else {
+      setQuery(value)
+      setPage(1)
+    }
+  }
+
+  function vacancyKey(vacancy: Vacancy): string {
+    return `${vacancy.source}:${vacancy.external_id}`
+  }
+
+  async function handleSave(vacancy: Vacancy) {
+    const key = vacancyKey(vacancy)
+
+    setBusyKey(key)
+    setNotice(null)
+    setError(null)
+
+    try {
+      await saveVacancy({
+        source: vacancy.source,
+        external_id: vacancy.external_id,
+      })
+
+      setSavedKeys((current) =>
+        current.includes(key) ? current : [...current, key],
+      )
+
+      setNotice(`Вакансия «${vacancy.title}» сохранена.`)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function handleApply(vacancy: Vacancy) {
+    const key = vacancyKey(vacancy)
+
+    setBusyKey(key)
+    setNotice(null)
+    setError(null)
+
+    try {
+      await createApplication({
+        source: vacancy.source,
+        external_id: vacancy.external_id,
+      })
+
+      setAppliedKeys((current) =>
+        current.includes(key) ? current : [...current, key],
+      )
+
+      setNotice(
+        `Отклик на «${vacancy.title}» добавлен в трекер.`,
+      )
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setBusyKey(null)
+    }
   }
 
   return (
@@ -108,7 +196,7 @@ export default function ApiVacanciesPage() {
             value={input}
             onChange={(event) => setInput(event.target.value)}
             placeholder="Например, Python Developer"
-            aria-label="Поисковый запрос"
+            aria-label="Поиск вакансий"
           />
         </div>
 
@@ -124,14 +212,20 @@ export default function ApiVacanciesPage() {
       {isStale && !loading && (
         <div className="api-notice" role="status">
           <AlertTriangle size={18} />
-          Показаны сохранённые результаты.
-          Информация может быть устаревшей.
+          Результаты получены из резервного кэша и могут
+          быть устаревшими.
+        </div>
+      )}
+
+      {notice && (
+        <div className="api-success" role="status">
+          {notice}
         </div>
       )}
 
       {error && (
         <div className="api-error" role="alert">
-          <AlertTriangle size={20} />
+          <AlertTriangle size={18} />
           <span>{error}</span>
         </div>
       )}
@@ -157,64 +251,92 @@ export default function ApiVacanciesPage() {
         </div>
       ) : (
         <div className="vacancy-grid">
-          {vacancies.map((vacancy) => (
-            <article
-              className="vacancy-card"
-              key={`${vacancy.source}:${vacancy.external_id}`}
-            >
-              <div className="card-heading">
-                <div className="company-logo">
-                  <BriefcaseBusiness size={20} />
+          {vacancies.map((vacancy) => {
+            const key = vacancyKey(vacancy)
+            const busy = busyKey === key
+
+            const saved = savedKeys.includes(key)
+            const applied = appliedKeys.includes(key)
+
+            return (
+              <article
+                className="vacancy-card"
+                key={key}
+              >
+                <div className="card-heading">
+                  <div className="company-logo">
+                    <BriefcaseBusiness size={20} />
+                  </div>
                 </div>
-              </div>
 
-              <h3>{vacancy.title}</h3>
+                <h3>{vacancy.title}</h3>
 
-              <p className="company-name">
-                {vacancy.company ?? 'Компания не указана'}
-              </p>
+                <p className="company-name">
+                  {vacancy.company ?? 'Компания не указана'}
+                </p>
 
-              <div className="vacancy-details">
-                <span>
-                  Источник: {vacancy.source}
-                </span>
-              </div>
+                <div className="vacancy-details">
+                  <span>Источник: {vacancy.source}</span>
+                </div>
 
-              {vacancy.url ? (
-                <a
-                  className="action-button api-vacancy-link"
-                  href={vacancy.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Открыть вакансию
-                  <ExternalLink size={15} />
-                </a>
-              ) : (
-                <span className="api-no-link">
-                  Ссылка на вакансию отсутствует
-                </span>
-              )}
-            </article>
-          ))}
+                <div className="api-card-actions">
+                  <button
+                    type="button"
+                    className="api-small-button"
+                    disabled={busy || saved || busyKey !== null}
+                    onClick={() => void handleSave(vacancy)}
+                  >
+                    <Bookmark size={16} />
+                    {saved ? 'Сохранено' : 'Сохранить'}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="api-small-button api-primary-button"
+                    disabled={busy || applied || busyKey !== null}
+                    onClick={() => void handleApply(vacancy)}
+                  >
+                    <Send size={16} />
+                    {applied ? 'Отклик добавлен' : 'Добавить отклик'}
+                  </button>
+                </div>
+
+                {vacancy.url && (
+                  <a
+                    className="api-external-link"
+                    href={vacancy.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Открыть на сайте работодателя
+                    <ExternalLink size={15} />
+                  </a>
+                )}
+              </article>
+            )
+          })}
         </div>
       )}
 
-      {!loading && !error && total > 20 && (
+      {!loading && !error && total > PER_PAGE && (
         <div className="api-pagination">
           <button
             type="button"
             disabled={page === 1}
-            onClick={() => setPage((current) => current - 1)}
+            onClick={() =>
+              setPage((current) => Math.max(1, current - 1))
+            }
           >
             Назад
           </button>
 
-          <span>Страница {page}</span>
+          <span>
+            Страница {page} из {Math.ceil(total / PER_PAGE)}
+          </span>
 
           <button
             type="button"
-            disabled={page * 20 >= total}
+            disabled={page * PER_PAGE >= total}
             onClick={() => setPage((current) => current + 1)}
           >
             Далее

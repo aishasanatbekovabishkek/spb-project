@@ -16,6 +16,9 @@ import {
 import AuthPage from './components/AuthPage'
 import ApiVacanciesPage from './components/ApiVacanciesPage'
 import { API_MODE } from './config'
+import ApiSavedVacanciesPage from './components/ApiSavedVacanciesPage'
+import ApiApplicationsPage from './components/ApiApplicationsPage'
+
 import './App.css'
 
 type Page = 'dashboard' | 'vacancies' | 'saved' | 'applications'
@@ -652,6 +655,9 @@ function App() {
           )}
 
           {page === 'saved' && (
+            API_MODE ? (
+              <ApiSavedVacanciesPage />
+            ) : (
             <>
               <div className="section-heading">
                 <h2>Ваши избранные вакансии</h2>
@@ -688,9 +694,13 @@ function App() {
                 </div>
               )}
             </>
+            )
           )}
 
           {page === 'applications' && (
+            API_MODE ? (
+              <ApiApplicationsPage />
+            ) : (
             <>
               <div className="section-heading">
                 <h2>История ваших откликов</h2>
@@ -813,7 +823,9 @@ function App() {
                 </div>
               )}
             </>
+            )
           )}
+
         </div>
       </main>
     </div>

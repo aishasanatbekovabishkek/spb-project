@@ -869,3 +869,117 @@
     min-height: 43px;
   }
 }
+
+
+/* API applications */
+
+.api-applications .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.api-applications .text-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.api-history {
+  margin-top: 22px;
+}
+
+.api-applications .application-card {
+  transition: border-color 0.2s ease;
+}
+
+.api-applications .application-card:hover {
+  border-color: #edbfd4;
+}
+
+.api-applications .status-select:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 600px) {
+  .api-applications .application-top {
+    flex-direction: column;
+  }
+
+  .api-applications .history-item {
+    align-items: flex-start;
+  }
+
+  .api-applications .history-item time {
+    width: 100%;
+    margin-left: 26px;
+  }
+}
+
+
+
+/* API vacancy card actions */
+
+.api-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.api-small-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 12px;
+  border: 1px solid #ecc7d8;
+  border-radius: 10px;
+  background: #fff;
+  color: #ae3272;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.api-small-button:hover:not(:disabled) {
+  background: #fff1f7;
+}
+
+.api-primary-button {
+  background: #d53680;
+  border-color: #d53680;
+  color: white;
+}
+
+.api-primary-button:hover:not(:disabled) {
+  background: #b72169;
+}
+
+.api-small-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.api-external-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 15px;
+  color: #ad3275;
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.api-external-link:hover {
+  text-decoration: underline;
+}
+
+.api-success {
+  margin-top: 18px;
+  padding: 13px 16px;
+  background: #edf9f2;
+  color: #287346;
+  border-radius: 12px;
+  font-size: 13px;
+}
