@@ -7,6 +7,8 @@ COPY package*.json ./
 RUN npm ci
 
 COPY . .
+ARG VITE_API_MODE=false
+ENV VITE_API_MODE=$VITE_API_MODE
 RUN npm run build
 
 FROM nginx:alpine
