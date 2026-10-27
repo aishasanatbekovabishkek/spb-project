@@ -1,5 +1,6 @@
 
 import { apiRequest } from './api'
+import type { ExternalVacancyId, Vacancy } from './vacancies'
 
 export type ApplicationStatus =
   | 'applied'
@@ -17,34 +18,81 @@ export type Application = {
   updated_at: string
 }
 
-export type StatusHistoryItem = {
-  id: string
-  application_id: string
-  status: ApplicationStatus
-  created_at: string
+export type ApplicationWithVacancy = Application & {
+  vacancy: Vacancy
 }
 
-export async function getApplications(): Promise<Application[]> {
-  return apiRequest<Application[]>('/applications', {
-    requiresAuth: true,
+export type ApplicationListResponse = {
+  items: ApplicationWithVacancy[]
+  page: number
+  per_page: number
+  total: number
+}
+
+export type StatusUpdateResponse = {
+  id: string
+  status: ApplicationStatus
+  updated_at: string
+}
+
+export type StatusHistoryItem = {
+  id: string
+  old_status: ApplicationStatus | null
+  new_status: ApplicationStatus
+  changed_at: string
+}
+
+export type StatusHistoryResponse = {
+  items: StatusHistoryItem[]
+}
+
+export async function getApplications(
+  page = 1,
+  perPage = 20,
+  status?: ApplicationStatus,
+): Promise<ApplicationListResponse> {
+  const params = new URLSearchParams({
+    page: String(page),
+    per_page: String(perPage),
   })
+
+  if (status) {
+    params.set('status', status)
+  }
+
+  return apiRequest<ApplicationListResponse>(
+    `/applications?${params.toString()}`,
+    { requiresAuth: true },
+  )
+}
+
+export async function getApplication(
+  id: string,
+): Promise<ApplicationWithVacancy> {
+  return apiRequest<ApplicationWithVacancy>(
+    `/applications/${encodeURIComponent(id)}`,
+    { requiresAuth: true },
+  )
 }
 
 export async function createApplication(
-  vacancyId: string,
+  vacancy: ExternalVacancyId,
 ): Promise<Application> {
-  return apiRequest<Application>('/applications', {
-    method: 'POST',
-    body: { vacancy_id: vacancyId },
-    requiresAuth: true,
-  })
+  return apiRequest<Application>(
+    '/applications',
+    {
+      method: 'POST',
+      body: vacancy,
+      requiresAuth: true,
+    },
+  )
 }
 
 export async function updateApplicationStatus(
   id: string,
   status: ApplicationStatus,
-): Promise<Application> {
-  return apiRequest<Application>(
+): Promise<StatusUpdateResponse> {
+  return apiRequest<StatusUpdateResponse>(
     `/applications/${encodeURIComponent(id)}/status`,
     {
       method: 'PATCH',
@@ -56,8 +104,8 @@ export async function updateApplicationStatus(
 
 export async function getApplicationHistory(
   id: string,
-): Promise<StatusHistoryItem[]> {
-  return apiRequest<StatusHistoryItem[]>(
+): Promise<StatusHistoryResponse> {
+  return apiRequest<StatusHistoryResponse>(
     `/applications/${encodeURIComponent(id)}/history`,
     { requiresAuth: true },
   )
