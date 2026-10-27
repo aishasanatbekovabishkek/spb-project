@@ -14,6 +14,8 @@ import {
   X,
 } from 'lucide-react'
 import AuthPage from './components/AuthPage'
+import ApiVacanciesPage from './components/ApiVacanciesPage'
+import { API_MODE } from './config'
 import './App.css'
 
 type Page = 'dashboard' | 'vacancies' | 'saved' | 'applications'
@@ -610,6 +612,9 @@ function App() {
           )}
 
           {page === 'vacancies' && (
+            API_MODE ? (
+              <ApiVacanciesPage />
+            ) : (
             <>
               <div className="search-panel">
                 <Search size={21} />
@@ -643,6 +648,7 @@ function App() {
 
               <VacancyGrid items={filteredVacancies} />
             </>
+            )
           )}
 
           {page === 'saved' && (
