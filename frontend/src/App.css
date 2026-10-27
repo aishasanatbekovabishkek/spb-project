@@ -721,3 +721,40 @@
   height: 100%;
   overflow: visible;
 }
+
+/* Authentication button */
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.login-button {
+  background: #d53680;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background: #b72169;
+}
+
+@media (max-width: 480px) {
+  .topbar-actions {
+    gap: 7px;
+  }
+
+  .login-button {
+    padding: 9px 12px;
+  }
+
+  .demo-label {
+    display: none;
+  }
+}

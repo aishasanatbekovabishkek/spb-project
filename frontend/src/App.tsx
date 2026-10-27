@@ -13,6 +13,7 @@ import {
   Menu,
   X,
 } from 'lucide-react'
+import AuthPage from './components/AuthPage'
 import './App.css'
 
 type Page = 'dashboard' | 'vacancies' | 'saved' | 'applications'
@@ -111,14 +112,13 @@ const statusOptions = Object.entries(statusLabels) as [Status, string][]
 function readStorage<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) as T : fallback
+    return raw ? (JSON.parse(raw) as T) : fallback
   } catch {
     return fallback
   }
 }
 
-
-
+// Kitty-inspired logo
 function KittyMark({ className = '' }: { className?: string }) {
   return (
     <svg
@@ -156,15 +156,13 @@ function KittyMark({ className = '' }: { className?: string }) {
       {/* Nose */}
       <ellipse cx="60" cy="68" rx="4.2" ry="2.8" fill="currentColor" />
 
-      {/* Left whiskers */}
+      {/* Whiskers */}
       <path
         d="M28 64 L5 60 M28 72 L5 76 M29 79 L9 89"
         stroke="currentColor"
         strokeWidth="3.5"
         strokeLinecap="round"
       />
-
-      {/* Right whiskers */}
       <path
         d="M92 64 L115 60 M92 72 L115 76 M91 79 L111 89"
         stroke="currentColor"
@@ -172,14 +170,13 @@ function KittyMark({ className = '' }: { className?: string }) {
         strokeLinecap="round"
       />
 
-      {/* Bow — two loops and a small central knot */}
+      {/* Bow */}
       <g
         stroke="currentColor"
         strokeWidth="3.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        {/* Left loop */}
         <path
           d="
             M88 29
@@ -190,8 +187,6 @@ function KittyMark({ className = '' }: { className?: string }) {
           "
           fill="none"
         />
-
-        {/* Right loop */}
         <path
           d="
             M96 29
@@ -202,8 +197,6 @@ function KittyMark({ className = '' }: { className?: string }) {
           "
           fill="none"
         />
-
-        {/* Center knot */}
         <ellipse
           cx="92"
           cy="32"
@@ -213,22 +206,23 @@ function KittyMark({ className = '' }: { className?: string }) {
           stroke="none"
         />
       </g>
-
     </svg>
   )
 }
 
-
 function App() {
   const [page, setPage] = useState<Page>('dashboard')
   const [query, setQuery] = useState('')
+  const [showAuth, setShowAuth] = useState(false)
+  const [mobileMenu, setMobileMenu] = useState(false)
+
   const [savedIds, setSavedIds] = useState<string[]>(() =>
     readStorage('jobtracker_saved', [])
   )
+
   const [applications, setApplications] = useState<Application[]>(() =>
     readStorage('jobtracker_applications', [])
   )
-  const [mobileMenu, setMobileMenu] = useState(false)
 
   useEffect(() => {
     localStorage.setItem('jobtracker_saved', JSON.stringify(savedIds))
@@ -243,9 +237,14 @@ function App() {
 
   const filteredVacancies = useMemo(() => {
     const normalized = query.trim().toLowerCase()
+
     return vacancies.filter((vacancy) =>
-      [vacancy.title, vacancy.company, vacancy.city, ...vacancy.skills]
-        .some((value) => value.toLowerCase().includes(normalized))
+      [
+        vacancy.title,
+        vacancy.company,
+        vacancy.city,
+        ...vacancy.skills,
+      ].some((value) => value.toLowerCase().includes(normalized))
     )
   }, [query])
 
@@ -266,8 +265,8 @@ function App() {
       return
     }
 
-    const event = {
-      status: 'applied' as Status,
+    const event: StatusEvent = {
+      status: 'applied',
       date: new Date().toLocaleString('ru-RU'),
     }
 
@@ -280,6 +279,7 @@ function App() {
       },
       ...current,
     ])
+
     setPage('applications')
   }
 
@@ -289,12 +289,16 @@ function App() {
         if (application.id !== id || application.status === status) {
           return application
         }
+
         return {
           ...application,
           status,
           history: [
             ...application.history,
-            { status, date: new Date().toLocaleString('ru-RU') },
+            {
+              status,
+              date: new Date().toLocaleString('ru-RU'),
+            },
           ],
         }
       })
@@ -313,10 +317,26 @@ function App() {
   }
 
   const menu = [
-    { id: 'dashboard' as Page, title: 'Обзор', icon: LayoutDashboard },
-    { id: 'vacancies' as Page, title: 'Вакансии', icon: Search },
-    { id: 'saved' as Page, title: 'Сохранённые', icon: Bookmark },
-    { id: 'applications' as Page, title: 'Мои отклики', icon: Send },
+    {
+      id: 'dashboard' as Page,
+      title: 'Обзор',
+      icon: LayoutDashboard,
+    },
+    {
+      id: 'vacancies' as Page,
+      title: 'Вакансии',
+      icon: Search,
+    },
+    {
+      id: 'saved' as Page,
+      title: 'Сохранённые',
+      icon: Bookmark,
+    },
+    {
+      id: 'applications' as Page,
+      title: 'Мои отклики',
+      icon: Send,
+    },
   ]
 
   const pageTitles: Record<Page, string> = {
@@ -328,6 +348,7 @@ function App() {
 
   function VacancyCard({ vacancy }: { vacancy: Vacancy }) {
     const saved = savedIds.includes(vacancy.id)
+
     const applied = applications.some(
       (item) => item.vacancyId === vacancy.id
     )
@@ -338,13 +359,22 @@ function App() {
           <div className="company-logo">
             {vacancy.company.slice(0, 1)}
           </div>
+
           <button
+            type="button"
             className={`icon-button ${saved ? 'is-saved' : ''}`}
             onClick={() => toggleSaved(vacancy.id)}
-            aria-label={saved ? 'Убрать из сохранённых' : 'Сохранить'}
-            title={saved ? 'Убрать из сохранённых' : 'Сохранить'}
+            aria-label={
+              saved ? 'Убрать из сохранённых' : 'Сохранить вакансию'
+            }
+            title={
+              saved ? 'Убрать из сохранённых' : 'Сохранить вакансию'
+            }
           >
-            <Bookmark size={20} fill={saved ? 'currentColor' : 'none'} />
+            <Bookmark
+              size={20}
+              fill={saved ? 'currentColor' : 'none'}
+            />
           </button>
         </div>
 
@@ -352,18 +382,29 @@ function App() {
         <p className="company-name">{vacancy.company}</p>
 
         <div className="vacancy-details">
-          <span><MapPin size={15} />{vacancy.city}</span>
-          <span><Wallet size={15} />{vacancy.salary}</span>
+          <span>
+            <MapPin size={15} />
+            {vacancy.city}
+          </span>
+          <span>
+            <Wallet size={15} />
+            {vacancy.salary}
+          </span>
         </div>
 
         <div className="tags">
           {vacancy.skills.map((skill) => (
-            <span className="tag" key={skill}>{skill}</span>
+            <span className="tag" key={skill}>
+              {skill}
+            </span>
           ))}
         </div>
 
         <button
-          className={`action-button ${applied ? 'secondary-button' : ''}`}
+          type="button"
+          className={`action-button ${
+            applied ? 'secondary-button' : ''
+          }`}
           onClick={() => createApplication(vacancy.id)}
         >
           {applied ? 'Посмотреть отклик' : 'Добавить отклик'}
@@ -378,16 +419,24 @@ function App() {
         <div className="empty-state">
           <Search size={32} />
           <h3>Ничего не найдено</h3>
-          <p>Попробуйте изменить запрос или сохраните вакансии.</p>
+          <p>Попробуйте изменить поисковый запрос.</p>
         </div>
       )
     }
+
     return (
       <div className="vacancy-grid">
         {items.map((vacancy) => (
           <VacancyCard key={vacancy.id} vacancy={vacancy} />
         ))}
       </div>
+    )
+  }
+
+  // Display the authentication page without deleting app data.
+  if (showAuth) {
+    return (
+      <AuthPage onBack={() => setShowAuth(false)} />
     )
   }
 
@@ -398,11 +447,14 @@ function App() {
           <div className="brand-icon kitty-badge">
             <KittyMark className="kitty-icon" />
           </div>
+
           <div>
             <strong>JobTracker</strong>
             <small>Ваш карьерный помощник</small>
           </div>
+
           <button
+            type="button"
             className="mobile-close"
             onClick={() => setMobileMenu(false)}
             aria-label="Закрыть меню"
@@ -411,16 +463,21 @@ function App() {
           </button>
         </div>
 
-        <div className="menu-caption">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+        <div className="menu-caption">
+          РАБОЧЕЕ ПРОСТРАНСТВО
+        </div>
+
         <nav className="navigation">
           {menu.map(({ id, title, icon: Icon }) => (
             <button
+              type="button"
               key={id}
               className={`nav-item ${page === id ? 'active' : ''}`}
               onClick={() => navigate(id)}
             >
               <Icon size={19} />
               <span>{title}</span>
+
               {id === 'saved' && savedIds.length > 0 && (
                 <span className="nav-count">{savedIds.length}</span>
               )}
@@ -437,21 +494,38 @@ function App() {
       <main className="main-content">
         <header className="topbar">
           <button
+            type="button"
             className="menu-toggle"
             onClick={() => setMobileMenu(true)}
             aria-label="Открыть меню"
           >
             <Menu size={22} />
           </button>
+
           <span>Job Application Tracker</span>
-          <span className="demo-label">MVP · DEMO</span>
+
+          <div className="topbar-actions">
+            <span className="demo-label">MVP · DEMO</span>
+
+            <button
+              type="button"
+              className="login-button"
+              onClick={() => setShowAuth(true)}
+            >
+              Войти
+            </button>
+          </div>
         </header>
 
         <div className="content">
           <div className="page-heading">
             <div>
-              <div className="eyebrow">УПРАВЛЕНИЕ КАРЬЕРОЙ</div>
+              <div className="eyebrow">
+                УПРАВЛЕНИЕ КАРЬЕРОЙ
+              </div>
+
               <h1>{pageTitles[page]}</h1>
+
               <p>Все вакансии и отклики в одном месте.</p>
             </div>
           </div>
@@ -460,16 +534,28 @@ function App() {
             <>
               <div className="welcome-panel">
                 <div>
-                  <span className="welcome-label">ВАШ ПУТЬ К НОВОЙ РАБОТЕ</span>
-                  <h2>Новая возможность начинается здесь.</h2>
-                  <p>Находите вакансии, сохраняйте интересные предложения и отслеживайте каждый этап.</p>
+                  <span className="welcome-label">
+                    ВАШ ПУТЬ К НОВОЙ РАБОТЕ
+                  </span>
+
+                  <h2>
+                    Новая возможность начинается здесь.
+                  </h2>
+
+                  <p>
+                    Находите вакансии, сохраняйте интересные
+                    предложения и отслеживайте каждый этап.
+                  </p>
+
                   <button
+                    type="button"
                     className="white-button"
                     onClick={() => navigate('vacancies')}
                   >
                     Найти вакансии →
                   </button>
                 </div>
+
                 <div className="welcome-art kitty-hero-mark">
                   <KittyMark className="hero-kitty-icon" />
                 </div>
@@ -481,20 +567,27 @@ function App() {
                   <strong>{vacancies.length}</strong>
                   <small>В демонстрационном каталоге</small>
                 </div>
+
                 <div className="stat-card">
                   <span>Сохранённые</span>
                   <strong>{savedIds.length}</strong>
                   <small>Интересующие предложения</small>
                 </div>
+
                 <div className="stat-card">
                   <span>Всего откликов</span>
                   <strong>{applications.length}</strong>
                   <small>Добавлены в трекер</small>
                 </div>
+
                 <div className="stat-card">
                   <span>Офферы</span>
                   <strong>
-                    {applications.filter((a) => a.status === 'offer').length}
+                    {
+                      applications.filter(
+                        (item) => item.status === 'offer'
+                      ).length
+                    }
                   </strong>
                   <small>Успешные результаты</small>
                 </div>
@@ -502,10 +595,16 @@ function App() {
 
               <div className="section-heading">
                 <h2>Актуальные вакансии</h2>
-                <button className="text-button" onClick={() => navigate('vacancies')}>
+
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => navigate('vacancies')}
+                >
                   Смотреть все →
                 </button>
               </div>
+
               <VacancyGrid items={vacancies.slice(0, 3)} />
             </>
           )}
@@ -514,24 +613,34 @@ function App() {
             <>
               <div className="search-panel">
                 <Search size={21} />
+
                 <input
                   value={query}
-                  onChange={(event) => setQuery(event.target.value)}
+                  onChange={(event) =>
+                    setQuery(event.target.value)
+                  }
                   placeholder="Должность, компания, технология или город..."
                   aria-label="Поиск вакансий"
                 />
+
                 {query && (
-                  <button onClick={() => setQuery('')} aria-label="Очистить">
+                  <button
+                    type="button"
+                    onClick={() => setQuery('')}
+                    aria-label="Очистить поиск"
+                  >
                     <X size={18} />
                   </button>
                 )}
               </div>
+
               <div className="section-heading">
                 <h2>Результаты поиска</h2>
                 <span className="results-count">
                   Найдено: {filteredVacancies.length}
                 </span>
               </div>
+
               <VacancyGrid items={filteredVacancies} />
             </>
           )}
@@ -540,18 +649,31 @@ function App() {
             <>
               <div className="section-heading">
                 <h2>Ваши избранные вакансии</h2>
-                <span className="results-count">{savedIds.length}</span>
+
+                <span className="results-count">
+                  {savedIds.length}
+                </span>
               </div>
-              {savedIds.length ? (
+
+              {savedIds.length > 0 ? (
                 <VacancyGrid
-                  items={vacancies.filter((v) => savedIds.includes(v.id))}
+                  items={vacancies.filter((vacancy) =>
+                    savedIds.includes(vacancy.id)
+                  )}
                 />
               ) : (
                 <div className="empty-state">
                   <Bookmark size={36} />
+
                   <h3>Пока ничего не сохранено</h3>
-                  <p>Перейдите к поиску и нажмите на значок закладки.</p>
+
+                  <p>
+                    Перейдите к поиску и нажмите
+                    на значок закладки.
+                  </p>
+
                   <button
+                    type="button"
                     className="action-button"
                     onClick={() => navigate('vacancies')}
                   >
@@ -566,6 +688,7 @@ function App() {
             <>
               <div className="section-heading">
                 <h2>История ваших откликов</h2>
+
                 <span className="results-count">
                   Всего: {applications.length}
                 </span>
@@ -574,9 +697,13 @@ function App() {
               {applications.length === 0 ? (
                 <div className="empty-state">
                   <Send size={36} />
+
                   <h3>Откликов пока нет</h3>
+
                   <p>Добавьте первую вакансию в трекер.</p>
+
                   <button
+                    type="button"
                     className="action-button"
                     onClick={() => navigate('vacancies')}
                   >
@@ -586,19 +713,34 @@ function App() {
               ) : (
                 <div className="applications-list">
                   {applications.map((application) => {
-                    const vacancy = getVacancy(application.vacancyId)
-                    if (!vacancy) return null
+                    const vacancy = getVacancy(
+                      application.vacancyId
+                    )
+
+                    if (!vacancy) {
+                      return null
+                    }
 
                     return (
-                      <article className="application-card" key={application.id}>
+                      <article
+                        className="application-card"
+                        key={application.id}
+                      >
                         <div className="application-top">
                           <div>
                             <h3>{vacancy.title}</h3>
-                            <p>{vacancy.company} · {vacancy.city}</p>
+
+                            <p>
+                              {vacancy.company} · {vacancy.city}
+                            </p>
                           </div>
+
                           <button
+                            type="button"
                             className="icon-button delete-button"
-                            onClick={() => removeApplication(application.id)}
+                            onClick={() =>
+                              removeApplication(application.id)
+                            }
                             aria-label="Удалить отклик"
                             title="Удалить отклик"
                           >
@@ -607,7 +749,10 @@ function App() {
                         </div>
 
                         <div className="status-row">
-                          <span className="status-label">Текущий статус</span>
+                          <span className="status-label">
+                            Текущий статус
+                          </span>
+
                           <select
                             value={application.status}
                             onChange={(event) =>
@@ -619,23 +764,42 @@ function App() {
                             className={`status-select status-${application.status}`}
                             aria-label="Изменить статус отклика"
                           >
-                            {statusOptions.map(([value, label]) => (
-                              <option key={value} value={value}>
-                                {label}
-                              </option>
-                            ))}
+                            {statusOptions.map(
+                              ([value, label]) => (
+                                <option
+                                  key={value}
+                                  value={value}
+                                >
+                                  {label}
+                                </option>
+                              )
+                            )}
                           </select>
                         </div>
 
                         <div className="history-block">
-                          <h4><History size={16} /> История статусов</h4>
-                          {application.history.slice().reverse().map((item, index) => (
-                            <div className="history-item" key={index}>
-                              <CheckCircle2 size={16} />
-                              <span>{statusLabels[item.status]}</span>
-                              <time>{item.date}</time>
-                            </div>
-                          ))}
+                          <h4>
+                            <History size={16} />
+                            История статусов
+                          </h4>
+
+                          {application.history
+                            .slice()
+                            .reverse()
+                            .map((item, index) => (
+                              <div
+                                className="history-item"
+                                key={index}
+                              >
+                                <CheckCircle2 size={16} />
+
+                                <span>
+                                  {statusLabels[item.status]}
+                                </span>
+
+                                <time>{item.date}</time>
+                              </div>
+                            ))}
                         </div>
                       </article>
                     )
