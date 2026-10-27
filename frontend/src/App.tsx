@@ -1,9 +1,17 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  BriefcaseBusiness, Search, Bookmark, Send,
-  LayoutDashboard, History, Trash2, MapPin,
-  Wallet, CheckCircle2, Menu, X
+  Search,
+  LayoutDashboard,
+  History,
+  Bookmark,
+  Send,
+  Trash2,
+  MapPin,
+  Wallet,
+  CheckCircle2,
+  Menu,
+  X,
 } from 'lucide-react'
 import './App.css'
 
@@ -108,6 +116,108 @@ function readStorage<T>(key: string, fallback: T): T {
     return fallback
   }
 }
+
+
+
+function KittyMark({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 120 100"
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      aria-hidden="true"
+    >
+      {/* Head and ears */}
+      <path
+        d="
+          M19 43
+          C16 31 14 12 24 11
+          C32 10 39 19 45 21
+          C55 18 69 18 79 21
+          C85 15 95 9 101 13
+          C107 18 104 34 101 43
+          C108 52 108 67 103 76
+          C96 90 79 94 60 94
+          C41 94 24 90 17 76
+          C12 66 12 53 19 43
+          Z
+        "
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+
+      {/* Eyes */}
+      <ellipse cx="43" cy="59" rx="2.8" ry="4.2" fill="currentColor" />
+      <ellipse cx="77" cy="59" rx="2.8" ry="4.2" fill="currentColor" />
+
+      {/* Nose */}
+      <ellipse cx="60" cy="68" rx="4.2" ry="2.8" fill="currentColor" />
+
+      {/* Left whiskers */}
+      <path
+        d="M28 64 L5 60 M28 72 L5 76 M29 79 L9 89"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+
+      {/* Right whiskers */}
+      <path
+        d="M92 64 L115 60 M92 72 L115 76 M91 79 L111 89"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
+
+      {/* Bow — two loops and a small central knot */}
+      <g
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {/* Left loop */}
+        <path
+          d="
+            M88 29
+            C82 23 73 19 70 24
+            C67 29 70 36 75 38
+            C79 40 84 36 88 34
+            Z
+          "
+          fill="none"
+        />
+
+        {/* Right loop */}
+        <path
+          d="
+            M96 29
+            C102 24 110 22 113 28
+            C116 34 110 40 105 40
+            C101 40 98 36 95 34
+            Z
+          "
+          fill="none"
+        />
+
+        {/* Center knot */}
+        <ellipse
+          cx="92"
+          cy="32"
+          rx="5"
+          ry="5.5"
+          fill="currentColor"
+          stroke="none"
+        />
+      </g>
+
+    </svg>
+  )
+}
+
 
 function App() {
   const [page, setPage] = useState<Page>('dashboard')
@@ -285,7 +395,9 @@ function App() {
     <div className="app-layout">
       <aside className={`sidebar ${mobileMenu ? 'sidebar-open' : ''}`}>
         <div className="brand">
-          <div className="brand-icon"><BriefcaseBusiness size={23} /></div>
+          <div className="brand-icon kitty-badge">
+            <KittyMark className="kitty-icon" />
+          </div>
           <div>
             <strong>JobTracker</strong>
             <small>Ваш карьерный помощник</small>
@@ -358,7 +470,9 @@ function App() {
                     Найти вакансии →
                   </button>
                 </div>
-                <BriefcaseBusiness className="welcome-art" size={120} />
+                <div className="welcome-art kitty-hero-mark">
+                  <KittyMark className="hero-kitty-icon" />
+                </div>
               </div>
 
               <div className="stats-grid">

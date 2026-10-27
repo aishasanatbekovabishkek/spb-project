@@ -12,7 +12,7 @@
   width: 260px;
   flex-shrink: 0;
   background: #fff;
-  border-right: 1px solid #e8ebf1;
+  border-right: 1px solid #f0e7ed;
   padding: 27px 16px;
   display: flex;
   flex-direction: column;
@@ -29,19 +29,31 @@
 }
 
 .brand-icon {
-  width: 43px;
-  height: 43px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   border-radius: 13px;
-  background: #4c5de5;
+  background: #ff73ae;
   color: #fff;
+}
+
+.kitty-badge {
+  background: linear-gradient(135deg, #ff9bca 0%, #f84f97 100%);
+  box-shadow: 0 8px 18px rgba(237, 73, 144, .18);
+}
+
+.kitty-icon {
+  width: 33px;
+  height: 33px;
+  display: block;
 }
 
 .brand strong {
   display: block;
   font-size: 18px;
-  letter-spacing: -0.5px;
+  letter-spacing: -.5px;
 }
 
 .brand small {
@@ -52,7 +64,7 @@
 }
 
 .menu-caption {
-  color: #9da4b3;
+  color: #a4a0ac;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.2px;
@@ -75,19 +87,19 @@
   border: none;
   background: transparent;
   text-align: left;
-  color: #697386;
+  color: #706e7c;
   font: inherit;
   font-size: 14px;
   cursor: pointer;
 }
 
 .nav-item:hover {
-  background: #f3f5fb;
+  background: #fff1f7;
 }
 
 .nav-item.active {
-  color: #4c5de5;
-  background: #eef0ff;
+  color: #c92870;
+  background: #ffe8f2;
   font-weight: 700;
 }
 
@@ -95,7 +107,7 @@
   margin-left: auto;
   border-radius: 7px;
   padding: 2px 8px;
-  background: #e2e6fa;
+  background: #ffd1e4;
   font-size: 11px;
 }
 
@@ -128,7 +140,7 @@
   justify-content: space-between;
   gap: 16px;
   padding: 0 42px;
-  border-bottom: 1px solid #e8ebf1;
+  border-bottom: 1px solid #eee7ed;
   background: #fff;
   color: #7d8595;
   font-size: 13px;
@@ -136,12 +148,12 @@
 
 .demo-label {
   padding: 7px 12px;
-  color: #4c5de5;
-  background: #eef0ff;
+  color: #be2c74;
+  background: #ffe6f0;
   border-radius: 30px;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.5px;
+  letter-spacing: .5px;
 }
 
 .content {
@@ -158,7 +170,7 @@
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.5px;
-  color: #6777df;
+  color: #db3f87;
   margin-bottom: 9px;
 }
 
@@ -177,10 +189,24 @@
 .welcome-panel {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(110deg, #4b5de0, #8a81ed);
+  background: linear-gradient(
+    103deg,
+    #111016 0%,
+    #28131f 37%,
+    #953257 69%,
+    #fa76ae 100%
+  );
   border-radius: 19px;
   padding: 37px 39px;
   color: white;
+  min-height: 295px;
+  display: flex;
+  align-items: center;
+}
+
+.welcome-panel > div:first-child {
+  position: relative;
+  z-index: 1;
 }
 
 .welcome-panel h2 {
@@ -188,29 +214,44 @@
   max-width: 470px;
   margin: 13px 0;
   line-height: 1.25;
-  letter-spacing: -0.7px;
+  letter-spacing: -.7px;
 }
 
 .welcome-panel p {
   max-width: 480px;
   font-size: 13px;
   line-height: 1.7;
-  color: #e2e6ff;
+  color: #fce2ed;
 }
 
 .welcome-label {
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.6px;
-  color: #d9e0ff;
+  color: #ffe7f1;
 }
 
 .welcome-art {
   position: absolute;
-  right: 68px;
-  top: 70px;
-  opacity: 0.18;
-  transform: rotate(-14deg);
+  right: 7%;
+  top: 50%;
+  transform: translateY(-50%) rotate(-9deg);
+  opacity: .8;
+  color: #fff;
+  pointer-events: none;
+}
+
+.kitty-hero-mark {
+  width: clamp(125px, 15vw, 225px);
+  height: clamp(125px, 15vw, 225px);
+  opacity: .24;
+}
+
+.hero-kitty-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 20px rgba(255, 255, 255, .18));
 }
 
 .white-button {
@@ -219,9 +260,13 @@
   border-radius: 10px;
   padding: 12px 18px;
   background: white;
-  color: #4b5de0;
+  color: #bc276b;
   font-weight: 700;
   cursor: pointer;
+}
+
+.white-button:hover {
+  background: #fff0f6;
 }
 
 .stats-grid {
@@ -233,7 +278,7 @@
 
 .stat-card {
   background: white;
-  border: 1px solid #e8ebf1;
+  border: 1px solid #efe9ee;
   border-radius: 14px;
   padding: 22px;
   display: flex;
@@ -266,14 +311,14 @@
 
 .section-heading h2 {
   font-size: 18px;
-  letter-spacing: -0.35px;
+  letter-spacing: -.35px;
   margin: 0;
 }
 
 .text-button {
   background: transparent;
   border: none;
-  color: #4c5de5;
+  color: #cf347f;
   cursor: pointer;
   font: inherit;
   font-size: 13px;
@@ -287,7 +332,7 @@
 
 .search-panel {
   background: white;
-  border: 1px solid #e4e7ef;
+  border: 1px solid #eee3ec;
   border-radius: 13px;
   padding: 7px 16px;
   display: flex;
@@ -297,7 +342,7 @@
 }
 
 .search-panel:focus-within {
-  border-color: #6677e9;
+  border-color: #eb73a5;
 }
 
 .search-panel input {
@@ -327,7 +372,7 @@
 .vacancy-card,
 .application-card {
   background: white;
-  border: 1px solid #e7eaf1;
+  border: 1px solid #eee5eb;
   border-radius: 15px;
   padding: 23px;
 }
@@ -347,8 +392,8 @@
 .company-logo {
   display: grid;
   place-items: center;
-  background: #eef0ff;
-  color: #4d60e3;
+  background: #fff0f7;
+  color: #cf347f;
   font-weight: 800;
   font-size: 18px;
   width: 44px;
@@ -363,15 +408,15 @@
   place-items: center;
   border: 0;
   border-radius: 9px;
-  background: #f5f6fa;
+  background: #faf6f9;
   color: #929bac;
   cursor: pointer;
 }
 
 .icon-button:hover,
 .icon-button.is-saved {
-  color: #4d5de3;
-  background: #edf0ff;
+  color: #d13c83;
+  background: #ffeaf3;
 }
 
 .vacancy-card h3 {
@@ -410,8 +455,8 @@
 
 .tag {
   padding: 7px 9px;
-  background: #f2f4f8;
-  color: #697387;
+  background: #fbf0f6;
+  color: #916a80;
   border-radius: 6px;
   font-size: 10px;
 }
@@ -421,7 +466,7 @@
   border-radius: 9px;
   padding: 12px 16px;
   color: white;
-  background: #4c5de5;
+  background: #cf347f;
   cursor: pointer;
   font: inherit;
   font-size: 12px;
@@ -430,16 +475,16 @@
 }
 
 .action-button:hover {
-  background: #394bd5;
+  background: #ae1f65;
 }
 
 .secondary-button {
-  background: #eef0ff;
-  color: #4c5de5;
+  background: #ffecf4;
+  color: #c42c71;
 }
 
 .secondary-button:hover {
-  background: #e3e7ff;
+  background: #ffdeeb;
 }
 
 .empty-state {
@@ -449,9 +494,9 @@
   padding: 65px 20px;
   text-align: center;
   background: white;
-  border: 1px dashed #dce1eb;
+  border: 1px dashed #e9d6e1;
   border-radius: 15px;
-  color: #9ca5b5;
+  color: #b18ba1;
 }
 
 .empty-state h3 {
@@ -511,9 +556,9 @@
 
 .status-select {
   appearance: auto;
-  background: #eef0ff;
-  color: #4c5de5;
-  border: 1px solid #e0e5ff;
+  background: #fff0f7;
+  color: #c42c71;
+  border: 1px solid #ffd4e6;
   border-radius: 8px;
   padding: 10px 13px;
   font: inherit;
@@ -534,7 +579,7 @@
 }
 
 .history-block {
-  border-top: 1px solid #eef0f4;
+  border-top: 1px solid #f0e9ee;
   padding-top: 17px;
 }
 
@@ -556,7 +601,7 @@
 }
 
 .history-item svg {
-  color: #7280e2;
+  color: #d45691;
   flex-shrink: 0;
 }
 
@@ -586,7 +631,7 @@
     position: fixed;
     z-index: 20;
     left: -280px;
-    transition: left 0.2s;
+    transition: left .2s;
     box-shadow: 10px 0 25px #20294512;
   }
 
@@ -622,6 +667,7 @@
 
   .welcome-panel {
     padding: 30px 24px;
+    min-height: 280px;
   }
 
   .welcome-art {
@@ -651,4 +697,27 @@
   .history-item time {
     font-size: 10px;
   }
+}
+
+
+/* Kitty logo refinements */
+
+.kitty-icon {
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+.kitty-hero-mark {
+  width: clamp(155px, 17vw, 245px);
+  height: clamp(135px, 15vw, 215px);
+  opacity: 0.32;
+  color: #ffffff;
+}
+
+.hero-kitty-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
