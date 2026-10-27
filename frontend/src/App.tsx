@@ -16,6 +16,7 @@ import {
 import AuthPage from './components/AuthPage'
 import ApiVacanciesPage from './components/ApiVacanciesPage'
 import { API_MODE } from './config'
+import { hasAccessToken, setAccessToken } from './services/api'
 import ApiSavedVacanciesPage from './components/ApiSavedVacanciesPage'
 import ApiApplicationsPage from './components/ApiApplicationsPage'
 
@@ -219,6 +220,20 @@ function App() {
   const [page, setPage] = useState<Page>('dashboard')
   const [query, setQuery] = useState('')
   const [showAuth, setShowAuth] = useState(false)
+  const [authenticated, setAuthenticated] = useState(
+    () => hasAccessToken()
+  )
+
+  function handleAuthBack() {
+    setAuthenticated(hasAccessToken())
+    setShowAuth(false)
+  }
+
+  function handleLogout() {
+    setAccessToken(null)
+    setAuthenticated(false)
+    setPage('dashboard')
+  }
   const [mobileMenu, setMobileMenu] = useState(false)
 
   const [savedIds, setSavedIds] = useState<string[]>(() =>
@@ -441,7 +456,7 @@ function App() {
   // Display the authentication page without deleting app data.
   if (showAuth) {
     return (
-      <AuthPage onBack={() => setShowAuth(false)} />
+      <AuthPage onBack={handleAuthBack} />
     )
   }
 
@@ -512,13 +527,23 @@ function App() {
           <div className="topbar-actions">
             <span className="demo-label">MVP · DEMO</span>
 
-            <button
-              type="button"
-              className="login-button"
-              onClick={() => setShowAuth(true)}
-            >
-              Войти
-            </button>
+            {API_MODE && authenticated ? (
+              <button
+                type="button"
+                className="login-button"
+                onClick={handleLogout}
+              >
+                Выйти
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="login-button"
+                onClick={() => setShowAuth(true)}
+              >
+                Войти
+              </button>
+            )}
           </div>
         </header>
 

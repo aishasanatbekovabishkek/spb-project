@@ -7,6 +7,10 @@ export function setAccessToken(token: string | null): void {
   accessToken = token
 }
 
+export function hasAccessToken(): boolean {
+  return accessToken !== null && accessToken.length > 0
+}
+
 export class ApiError extends Error {
   status: number
   code: string
