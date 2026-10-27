@@ -88,6 +88,7 @@ services:
   tests:
     build:
       context: ./backend
+      dockerfile: Dockerfile.test
 
     profiles:
       - testing
