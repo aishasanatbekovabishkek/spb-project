@@ -15,11 +15,11 @@ class Credentials(BaseModel):
 
 
 class VacancyRef(BaseModel):
-    source: str = Field(pattern=r"^(hh|demo)$")
+    source: str = Field(pattern=r"^(hh|demo|trudvsem)$")
     external_id: str = Field(
         min_length=1,
         max_length=255,
-        pattern=r"^[0-9]+$",
+        pattern=r"^[A-Za-z0-9:-]+$",
     )
 
 

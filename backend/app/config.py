@@ -12,8 +12,9 @@ class Settings(BaseSettings):
     jwt_secret: str = ""
     jwt_expire_minutes: int = Field(default=60, ge=1)
     hh_user_agent: str = "JobApplicationTracker/0.1"
-    vacancy_provider_mode: Literal["hh", "demo"] = "hh"
+    vacancy_provider_mode: Literal["hh", "demo", "trudvsem"] = "hh"
     provider_timeout_seconds: float = Field(default=3.0, gt=0, le=5)
+    trudvsem_timeout_seconds: float = Field(default=15.0, gt=0, le=30)
     provider_min_interval_seconds: float = Field(default=0.2, ge=0.01)
     cache_fresh_seconds: int = Field(default=600, ge=1)
     cache_retention_seconds: int = Field(default=86400, ge=1)
