@@ -266,4 +266,10 @@ demo_provider = DemoVacancyProvider()
 def get_provider():
     if settings.vacancy_provider_mode == "demo":
         return demo_provider
+
+    if settings.vacancy_provider_mode == "trudvsem":
+        from app.trudvsem_provider import trudvsem_provider
+
+        return trudvsem_provider
+
     return provider
