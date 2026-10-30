@@ -18,6 +18,8 @@ logger = logging.getLogger(__name__)
 
 
 class VacancyProvider:
+    request_budget_key = "hh:request-budget"
+
     def __init__(self, cache=None, client=None, clock=time.time):
         self.cache = cache if cache is not None else Redis.from_url(
             settings.redis_url,
@@ -88,7 +90,7 @@ class VacancyProvider:
 
         try:
             allowed = self.cache.set(
-                "hh:request-budget",
+                self.request_budget_key,
                 "1",
                 nx=True,
                 px=max(1, int(interval * 1000)),

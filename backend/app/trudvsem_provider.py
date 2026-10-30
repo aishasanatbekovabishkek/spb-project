@@ -8,14 +8,14 @@ from app.config import settings
 from app.errors import APIError
 from app.provider import VacancyProvider
 
-
 class TrudvsemProvider(VacancyProvider):
     source = "trudvsem"
+    request_budget_key = "trudvsem:request-budget"
 
     def __init__(self, cache=None, client=None, clock=time.time):
         if client is None:
             client = httpx.Client(
-                base_url="http://opendata.trudvsem.ru/api",
+                base_url="https://opendata.trudvsem.ru/api",
                 timeout=settings.trudvsem_timeout_seconds,
                 headers={"User-Agent": "JobApplicationTracker/0.1"},
             )

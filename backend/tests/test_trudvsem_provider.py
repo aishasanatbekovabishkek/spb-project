@@ -4,6 +4,7 @@ import pytest
 
 from app.errors import APIError
 from app.trudvsem_provider import TrudvsemProvider
+from app.provider import VacancyProvider
 
 
 COMPANY_CODE = "1141215003214"
@@ -132,3 +133,33 @@ def test_details_rejects_invalid_external_id():
         assert error.value.status == 404
     finally:
         provider.close()
+
+
+def test_hh_and_trudvsem_use_separate_rate_limit_keys():
+    cache = fakeredis.FakeRedis(decode_responses=True)
+
+    def handler(request):
+        return httpx.Response(200, json={"ok": True})
+
+    hh_client = httpx.Client(
+        base_url="https://api.hh.ru",
+        transport=httpx.MockTransport(handler),
+    )
+    trudvsem_client = httpx.Client(
+        base_url="https://opendata.trudvsem.ru/api",
+        transport=httpx.MockTransport(handler),
+    )
+
+    hh_provider = VacancyProvider(cache=cache, client=hh_client)
+    trudvsem_provider = TrudvsemProvider(
+        cache=cache,
+        client=trudvsem_client,
+    )
+
+    try:
+        assert hh_provider.request("/probe", {}) == {"ok": True}
+        assert trudvsem_provider.request("/probe", {}) == {"ok": True}
+    finally:
+        hh_client.close()
+        trudvsem_client.close()
+        cache.close()
