@@ -17,6 +17,7 @@ import AuthPage from './components/AuthPage'
 import ApiVacanciesPage from './components/ApiVacanciesPage'
 import { API_MODE } from './config'
 import { hasAccessToken, setAccessToken } from './services/api'
+import { getSavedVacancies } from './services/savedVacancies'
 import ApiSavedVacanciesPage from './components/ApiSavedVacanciesPage'
 import ApiApplicationsPage from './components/ApiApplicationsPage'
 
@@ -239,6 +240,40 @@ function App() {
   const [savedIds, setSavedIds] = useState<string[]>(() =>
     readStorage('jobtracker_saved', [])
   )
+
+  const [serverSavedCount, setServerSavedCount] = useState(0)
+
+useEffect(() => {
+  if (!API_MODE || !authenticated) {
+    setServerSavedCount(0)
+    return
+  }
+
+  let active = true
+
+  async function refreshSavedCount() {
+    try {
+      const result = await getSavedVacancies(1, 1)
+
+      if (active) {
+        setServerSavedCount(result.total)
+      }
+    } catch (error) {
+      console.error('Не удалось получить количество вакансий:', error)
+    }
+  }
+
+  void refreshSavedCount()
+
+  window.addEventListener('jobtracker:saved-changed', refreshSavedCount)
+
+  return () => {
+    active = false
+    window.removeEventListener('jobtracker:saved-changed', refreshSavedCount)
+  }
+}, [authenticated, page])
+
+const savedCount = API_MODE ? serverSavedCount : savedIds.length
 
   const [applications, setApplications] = useState<Application[]>(() =>
     readStorage('jobtracker_applications', [])
@@ -498,8 +533,8 @@ function App() {
               <Icon size={19} />
               <span>{title}</span>
 
-              {id === 'saved' && savedIds.length > 0 && (
-                <span className="nav-count">{savedIds.length}</span>
+              {id === 'saved' && savedCount > 0 && (
+                <span className="nav-count">{savedCount}</span>
               )}
             </button>
           ))}
@@ -600,7 +635,7 @@ function App() {
 
                 <div className="stat-card">
                   <span>Сохранённые</span>
-                  <strong>{savedIds.length}</strong>
+                  <strong>{savedCount}</strong>
                   <small>Интересующие предложения</small>
                 </div>
 

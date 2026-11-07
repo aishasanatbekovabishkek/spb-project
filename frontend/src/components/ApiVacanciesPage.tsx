@@ -148,6 +148,8 @@ export default function ApiVacanciesPage() {
         current.includes(key) ? current : [...current, key],
       )
 
+      window.dispatchEvent(new Event('jobtracker:saved-changed'))
+
       setNotice(`Вакансия «${vacancy.title}» сохранена.`)
     } catch (err) {
       setError(getErrorMessage(err))
