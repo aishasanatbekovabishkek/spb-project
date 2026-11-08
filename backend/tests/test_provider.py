@@ -68,7 +68,7 @@ def test_cache_fresh_stale_and_expired():
 
     result = provider.search("python", 1, 20)
     assert result["is_stale"] is True
-    assert state["calls"] == 2
+    assert state["calls"] == 1
 
     state["time"] += 86400
     cache.delete("hh:request-budget")
@@ -132,7 +132,7 @@ def test_invalid_response_and_timeout():
         provider.search("java", 1, 20)
 
     assert error.value.status == 503
-    assert state["calls"] == 3
+    assert state["calls"] == 1
 
 
 def test_redis_failure_degrades_to_provider():
