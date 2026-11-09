@@ -49,14 +49,14 @@
 ### 4.1. Unit и интеграционные тесты бэкенда (Pytest)
 Для запуска тестов бэкенда внутри Docker-контейнера выполните:
 
-    docker compose exec backend pytest
+    docker compose --profile testing run --build --rm tests
 
 ### 4.2. E2E-тесты (Playwright)
 Для проверки сквозного сценария используется Playwright.
 Убедитесь, что основной проект уже запущен (см. раздел 3), затем выполните:
 
     docker build -t e2e-tests -f Dockerfile .
-    docker run --rm --network host e2e-tests
+    docker run --rm --network spb-project_default e2e-tests
 
 ## 5. Остановка проекта
 Чтобы остановить все контейнеры **без удаления данных PostgreSQL**, выполните:
