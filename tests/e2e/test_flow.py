@@ -28,16 +28,30 @@ def test_user_registration_and_login(page: Page):
     page.locator("text=Вакансии").first.click()
     expect(page.locator("h1:has-text('Поиск вакансий')")).to_be_visible(timeout=5000)
     
-    # 8. ПОИСК ВАКАНСИИ: Ввожу "Python" в поле и нажимаю "Найти"
+    # 8. ПОИСК ВАКАНСИИ
     page.fill("input[aria-label='Поиск вакансий']", "Python")
     page.click("button:has-text('Найти')")
-
-    # Жду, пока появятся результаты (ищу текст "Python" в заголовках карточек)
     expect(page.locator("text=Программист Python").first).to_be_visible(timeout=10000)
     print("Поиск вакансий выполнен успешно!")
 
-    # 9. СОХРАНЕНИЕ ВАКАНСИИ: Кликаю по первой кнопке "Сохранить"
+    # 9. СОХРАНЕНИЕ ВАКАНСИИ
     page.locator("button:has-text('Сохранить')").first.click()
-
     print("Вакансия успешно сохранена!")
     
+    # 10. СОЗДАНИЕ ОТКЛИКА
+    page.locator("button:has-text('Добавить отклик')").first.click()
+    expect(page.locator("text=добавлен в трекер")).to_be_visible(timeout=5000)
+    print("Отклик успешно создан!")
+    
+    # 11. ПЕРЕХОД В "МОИ ОТКЛИКИ"
+    page.locator("text=Мои отклики").first.click()
+    expect(page.locator("h1:has-text('Мои отклики')")).to_be_visible(timeout=5000)
+    
+    # 12. ИЗМЕНЕНИЕ СТАТУСА
+    page.locator("select[aria-label='Изменить статус отклика']").select_option(label="Собеседование с HR")
+    print("Статус успешно изменен!")
+    
+    # 13. ПРОСМОТР ИСТОРИИ
+    page.locator("text=Показать историю").click()
+    expect(page.locator("text=История")).to_be_visible(timeout=5000)
+    print("Просмотр истории выполнен успешно!")
