@@ -1,0 +1,38 @@
+name: E2E Tests (Playwright)
+
+on:
+  push:
+    branches: [ "main", "feature/*" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Шаг 1: Получение актуального кода из репозитория
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # Шаг 2: Сборка и запуск сервисов (БД, backend, frontend) через Docker Compose
+    - name: Build and run services
+      run: |
+        docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d --build
+        
+    # Шаг 3: Ожидание инициализации контейнеров (15 секунд)
+    - name: Wait for services to be ready
+      run: sleep 15
+
+    # Шаг 4: Сборка Docker-образа для E2E-тестов
+    - name: Build E2E test image
+      run: docker build -t e2e-tests -f Dockerfile .
+
+    # Шаг 5: Запуск E2E-тестов в сети Docker Compose
+    - name: Run E2E tests
+      run: docker run --rm --network spb-project_default e2e-tests
+        
+    # Шаг 6: Остановка контейнеров после завершения тестов (выполняется всегда)
+    - name: Stop services
+      if: always()
+      run: docker compose -f docker-compose.yml -f docker-compose.frontend.yml down
