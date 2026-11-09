@@ -9,18 +9,19 @@ on:
 jobs:
   e2e-tests:
     runs-on: ubuntu-latest
+    
+    # Переменные для всех шагов
+    env:
+      POSTGRES_PASSWORD: testpassword123
+      JWT_SECRET: test_secret_key_for_github_actions_at_least_32_chars_long
+      VACANCY_PROVIDER_MODE: trudvsem
+      VITE_API_MODE: "true"
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Передаю переменные окружения напрямую в Docker Compose, чтобы обойти проблему с .env
     - name: Build and run services
-      env:
-        POSTGRES_PASSWORD: testpassword123
-        JWT_SECRET: test_secret_key_for_github_actions_at_least_32_chars_long
-        VACANCY_PROVIDER_MODE: trudvsem
-        VITE_API_MODE: "true"
       run: |
         docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d --build
         
