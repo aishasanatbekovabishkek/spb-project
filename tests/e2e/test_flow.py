@@ -3,7 +3,7 @@ from playwright.sync_api import Page, expect
 import time
 
 def test_user_registration_and_login(page: Page):
-    # 1. Открываю сайт
+    # 1. Открываю сайт (используем имя сервиса в Docker)
     page.goto("http://frontend:80")
     
     # 2. Нажимаю кнопку "Войти"
@@ -34,11 +34,13 @@ def test_user_registration_and_login(page: Page):
     expect(page.locator("text=Программист Python").first).to_be_visible(timeout=10000)
     print("Поиск вакансий выполнен успешно!")
 
-    # 9. СОХРАНЕНИЕ ВАКАНСИИ
+    # 9. СОХРАНЕНИЕ ВАКАНСИИ (добавлено ожидание)
+    expect(page.locator("button:has-text('Сохранить')").first).to_be_visible(timeout=10000)
     page.locator("button:has-text('Сохранить')").first.click()
     print("Вакансия успешно сохранена!")
     
-    # 10. СОЗДАНИЕ ОТКЛИКА
+    # 10. СОЗДАНИЕ ОТКЛИКА (добавлено ожидание)
+    expect(page.locator("button:has-text('Добавить отклик')").first).to_be_visible(timeout=10000)
     page.locator("button:has-text('Добавить отклик')").first.click()
     expect(page.locator("text=добавлен в трекер")).to_be_visible(timeout=5000)
     print("Отклик успешно создан!")
@@ -51,7 +53,8 @@ def test_user_registration_and_login(page: Page):
     page.locator("select[aria-label='Изменить статус отклика']").select_option(label="Собеседование с HR")
     print("Статус успешно изменен!")
     
-    # 13. ПРОСМОТР ИСТОРИИ
+    # 13. ПРОСМОТР ИСТОРИИ (добавлено ожидание)
+    expect(page.locator("text=Показать историю")).to_be_visible(timeout=10000)
     page.locator("text=Показать историю").click()
     expect(page.locator("text=История")).to_be_visible(timeout=5000)
     print("Просмотр истории выполнен успешно!")
