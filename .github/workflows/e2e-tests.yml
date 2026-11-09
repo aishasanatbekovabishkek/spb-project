@@ -14,15 +14,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Этот шаг создает временный файл .env для сборки в GitHub
-    - name: Create .env file
-      run: |
-        echo "POSTGRES_PASSWORD=testpassword123" > .env
-        echo "JWT_SECRET=test_secret_key_for_github_actions_at_least_32_chars_long" >> .env
-        echo "VACANCY_PROVIDER_MODE=trudvsem" >> .env
-        echo "VITE_API_MODE=true" >> .env
-
+    # Передаю переменные окружения напрямую в Docker Compose, чтобы обойти проблему с .env
     - name: Build and run services
+      env:
+        POSTGRES_PASSWORD: testpassword123
+        JWT_SECRET: test_secret_key_for_github_actions_at_least_32_chars_long
+        VACANCY_PROVIDER_MODE: trudvsem
+        VITE_API_MODE: "true"
       run: |
         docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d --build
         
