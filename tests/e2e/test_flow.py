@@ -47,8 +47,10 @@ def test_user_registration_and_login(page: Page):
     page.locator("button:has-text('Сохранить')").first.click()
     print("Вакансия сохранена!")
     
-    # 10. Создание отклика (ждем, пока кнопка станет активной)
+    # 10. Создание отклика 
     print("ШАГ 10: Нажимаю 'Добавить отклик'")
+    # Ждем 1 секунду, чтобы интерфейс успел обновить состояние кнопки после сохранения
+    page.wait_for_timeout(1000) 
     expect(page.locator("button:has-text('Добавить отклик')").first).to_be_enabled(timeout=10000)
     page.locator("button:has-text('Добавить отклик')").first.click()
     expect(page.locator("text=добавлен в трекер")).to_be_visible(timeout=5000)
