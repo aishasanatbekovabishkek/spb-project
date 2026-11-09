@@ -14,7 +14,6 @@ def test_user_registration_and_login(page: Page):
     
     # 4. Заполняю форму (генерирую случайную почту)
     test_email = f"test_{int(time.time())}@example.com"
-    
     page.fill("input[type='email']", test_email)
     page.fill("input[type='password']", "Password123!")
     
@@ -25,10 +24,20 @@ def test_user_registration_and_login(page: Page):
     expect(page.locator("text=Выйти")).to_be_visible(timeout=5000)
     print(f"Успешная регистрация с почтой: {test_email}")
     
-    # 7. ПРОВЕРКА ЗАЩИЩЕННОГО РАЗДЕЛА: Перехожу на страницу "Вакансии"
+    # 7. ПЕРЕХОД НА СТРАНИЦУ "ВАКАНСИИ"
     page.locator("text=Вакансии").first.click()
-    
-    # Жду, пока загрузятся данные (проверяю, что появился заголовок "Поиск вакансий")
     expect(page.locator("h1:has-text('Поиск вакансий')")).to_be_visible(timeout=5000)
     
-    print("Переход в защищенный раздел 'Вакансии' выполнен успешно!")
+    # 8. ПОИСК ВАКАНСИИ: Ввожу "Python" в поле и нажимаю "Найти"
+    page.fill("input[aria-label='Поиск вакансий']", "Python")
+    page.click("button:has-text('Найти')")
+
+    # Жду, пока появятся результаты (ищу текст "Python" в заголовках карточек)
+    expect(page.locator("text=Программист Python").first).to_be_visible(timeout=10000)
+    print("Поиск вакансий выполнен успешно!")
+
+    # 9. СОХРАНЕНИЕ ВАКАНСИИ: Кликаю по первой кнопке "Сохранить"
+    page.locator("button:has-text('Сохранить')").first.click()
+
+    print("Вакансия успешно сохранена!")
+    
