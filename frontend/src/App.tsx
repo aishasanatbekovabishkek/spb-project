@@ -20,7 +20,10 @@ import { hasAccessToken, setAccessToken } from './services/api'
 import { getSavedVacancies } from './services/savedVacancies'
 import ApiSavedVacanciesPage from './components/ApiSavedVacanciesPage'
 import ApiApplicationsPage from './components/ApiApplicationsPage'
-
+import {
+  getApplicationStatistics,
+  type ApplicationStatistics,
+} from './services/statistics'
 import './App.css'
 
 type Page = 'dashboard' | 'vacancies' | 'saved' | 'applications'
@@ -224,6 +227,35 @@ function App() {
   const [authenticated, setAuthenticated] = useState(
     () => hasAccessToken()
   )
+  const [serverStatistics, setServerStatistics] =
+    useState<ApplicationStatistics | null>(null)
+
+  useEffect(() => {
+    if (!API_MODE || !authenticated) {
+      return
+    }
+
+    let active = true
+
+    async function loadStatistics() {
+      try {
+        const result = await getApplicationStatistics()
+
+        if (active) {
+          setServerStatistics(result)
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки статистики:', error)
+        if (active) setServerStatistics(null)
+      }
+    }
+
+    void loadStatistics()
+
+    return () => {
+      active = false
+    }
+  }, [authenticated, page])
 
   function handleAuthBack() {
     setAuthenticated(hasAccessToken())
@@ -234,6 +266,7 @@ function App() {
     setAccessToken(null)
     setAuthenticated(false)
     setPage('dashboard')
+    setServerStatistics(null)
   }
   const [mobileMenu, setMobileMenu] = useState(false)
 
@@ -542,7 +575,7 @@ const savedCount = API_MODE ? serverSavedCount : savedIds.length
 
         <div className="sidebar-bottom">
           <span className="demo-dot" />
-          Демонстрационный режим
+          {API_MODE ? 'Подключено к API' : 'Демонстрационный режим'}
         </div>
       </aside>
 
@@ -560,7 +593,9 @@ const savedCount = API_MODE ? serverSavedCount : savedIds.length
           <span>Job Application Tracker</span>
 
           <div className="topbar-actions">
-            <span className="demo-label">MVP · DEMO</span>
+            <span className="demo-label">
+              {API_MODE ? 'MVP · API' : 'MVP · DEMO'}
+            </span>
 
             {API_MODE && authenticated ? (
               <button
@@ -628,9 +663,13 @@ const savedCount = API_MODE ? serverSavedCount : savedIds.length
 
               <div className="stats-grid">
                 <div className="stat-card">
-                  <span>Доступно вакансий</span>
-                  <strong>{vacancies.length}</strong>
-                  <small>В демонстрационном каталоге</small>
+                  <span>Поиск вакансий</span>
+                  <strong>{API_MODE ? 'API' : vacancies.length}</strong>
+                  <small>
+                    {API_MODE
+                      ? 'Вакансии из внешнего источника'
+                      : 'В демонстрационном каталоге'}
+                  </small>
                 </div>
 
                 <div className="stat-card">
@@ -641,18 +680,26 @@ const savedCount = API_MODE ? serverSavedCount : savedIds.length
 
                 <div className="stat-card">
                   <span>Всего откликов</span>
-                  <strong>{applications.length}</strong>
+                  <strong>
+                    {API_MODE
+                      ? (authenticated
+                          ? (serverStatistics?.total_applications ?? '—')
+                          : '—')
+                      : applications.length}
+                  </strong>
                   <small>Добавлены в трекер</small>
                 </div>
 
                 <div className="stat-card">
                   <span>Офферы</span>
                   <strong>
-                    {
-                      applications.filter(
-                        (item) => item.status === 'offer'
-                      ).length
-                    }
+                    {API_MODE
+                      ? (authenticated
+                          ? (serverStatistics?.by_status.offer ?? '—')
+                          : '—')
+                      : applications.filter(
+                          (item) => item.status === 'offer',
+                        ).length}
                   </strong>
                   <small>Успешные результаты</small>
                 </div>
@@ -670,7 +717,22 @@ const savedCount = API_MODE ? serverSavedCount : savedIds.length
                 </button>
               </div>
 
-              <VacancyGrid items={vacancies.slice(0, 3)} />
+              {API_MODE ? (
+                <div className="api-empty">
+                  <p>
+                    Находи реальные вакансии через подключённый сервис.
+                  </p>
+                  <button
+                    type="button"
+                    className="action-button"
+                    onClick={() => navigate('vacancies')}
+                  >
+                    Перейти к поиску
+                  </button>
+                </div>
+              ) : (
+                <VacancyGrid items={vacancies.slice(0, 3)} />
+              )}
             </>
           )}
 

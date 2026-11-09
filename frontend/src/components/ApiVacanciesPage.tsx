@@ -14,9 +14,17 @@ import {
   searchVacancies,
   type Vacancy,
 } from '../services/vacancies'
-import { saveVacancy } from '../services/savedVacancies'
-import { createApplication } from '../services/applications'
-import { ApiError } from '../services/api'
+import {
+  saveVacancy,
+  getSavedVacancies,
+} from '../services/savedVacancies'
+
+import {
+  createApplication,
+  getApplications,
+} from '../services/applications'
+
+import { ApiError, hasAccessToken } from '../services/api'
 
 const PER_PAGE = 20
 
@@ -52,6 +60,64 @@ export default function ApiVacanciesPage() {
 
   const [savedKeys, setSavedKeys] = useState<string[]>([])
   const [appliedKeys, setAppliedKeys] = useState<string[]>([])
+
+  const [syncLoading, setSyncLoading] = useState(false)
+
+  useEffect(() => {
+    if (!hasAccessToken()) {
+      setSavedKeys([])
+      setAppliedKeys([])
+      return
+    }
+
+    let active = true
+    setSyncLoading(true)
+
+    async function loadUserVacancies() {
+      const results = await Promise.allSettled([
+        getSavedVacancies(1, 100),
+        getApplications(1, 100),
+      ])
+
+      if (!active) return
+
+      const [savedResult, applicationsResult] = results
+
+      if (savedResult.status === 'fulfilled') {
+        setSavedKeys(
+          savedResult.value.items.map(
+            (item) => `${item.source}:${item.external_id}`,
+          ),
+        )
+      }
+
+      if (applicationsResult.status === 'fulfilled') {
+        setAppliedKeys(
+          applicationsResult.value.items.map(
+            (item) =>
+              `${item.vacancy.source}:${item.vacancy.external_id}`,
+          ),
+        )
+      }
+
+      if (
+        savedResult.status === 'rejected' ||
+        applicationsResult.status === 'rejected'
+      ) {
+        setError(
+          'Не удалось полностью загрузить ваши сохранения и отклики.',
+        )
+      }
+
+      setSyncLoading(false)
+    }
+
+    void loadUserVacancies()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -285,7 +351,7 @@ export default function ApiVacanciesPage() {
                   <button
                     type="button"
                     className="api-small-button"
-                    disabled={busy || saved || busyKey !== null}
+                    disabled={syncLoading || busy || saved || busyKey !== null}
                     onClick={() => void handleSave(vacancy)}
                   >
                     <Bookmark size={16} />
@@ -295,7 +361,7 @@ export default function ApiVacanciesPage() {
                   <button
                     type="button"
                     className="api-small-button api-primary-button"
-                    disabled={busy || applied || busyKey !== null}
+                    disabled={syncLoading || busy || applied || busyKey !== null}
                     onClick={() => void handleApply(vacancy)}
                   >
                     <Send size={16} />
