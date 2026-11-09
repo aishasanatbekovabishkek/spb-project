@@ -9,7 +9,7 @@ Job Application Tracker — веб-приложение для поиска ва
 При активном поиске работы информация о вакансиях, собеседованиях, откликах и их статусах часто оказывается разбросанной по разным сервисам. 
 Приложение позволяет объединить эту информацию в одном месте и отслеживать процесс трудоустройства.
 
-**В качестве основного работающего внешнего источника данных используется API Trudvsem** (так как HeadHunter начал возвращать ошибку 403).
+В качестве внешнего источника данных используется API **Trudvsem** (так как HeadHunter начал возвращать ошибку 403).
 
 ## 2. Команда
 
@@ -52,12 +52,16 @@ Frontend взаимодействует с Backend через REST API.
 PostgreSQL используется для постоянного хранения, Redis — для кэширования внешних данных.
 
 **Архитектурные диаграммы:**
-- C4 System Context
-- C4 Container
-- ER-диаграмма
-- REST API Contracts
+* [C4 System Context](docs/architecture/context.md)
+* [C4 Container](docs/architecture/container.md)
+* [ER-диаграмма](docs/database/er-diagram.md)
+
+**Контракты API:**
+* [REST API Contracts](docs/api/contracts.md)
 
 **Нагрузочное проектирование:**
+* [Capacity Planning](docs/architecture/capacity-planning.md)
+
 Документ включает:
 - оценку Read/Write нагрузки;
 - расчёт RPS и сетевого трафика;
