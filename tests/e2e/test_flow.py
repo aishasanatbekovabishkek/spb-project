@@ -4,7 +4,7 @@ import time
 
 def test_user_registration_and_login(page: Page):
     # 1. Открываю сайт
-    page.goto("http://localhost:8080")
+    page.goto("http://frontend:80")
     
     # 2. Нажимаю кнопку "Войти"
     page.click("text=Войти")
