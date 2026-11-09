@@ -49,14 +49,16 @@ def test_user_registration_and_login(page: Page):
     
     # 10. СОЗДАНИЕ ОТКЛИКА 
     print("ШАГ 10: Пытаюсь добавить отклик")
-    # Ждем 2 секунды, чтобы всплывающее уведомление о сохранении исчезло
+    # Ждем 2 секунды, чтобы уведомление о сохранении исчезло
     page.wait_for_timeout(2000) 
     
-    # Ждем, пока кнопка станет активной (до 10 секунд)
-    apply_button = page.locator("button:has-text('Добавить отклик')").first
+    # Ищем кнопку по её классу (api-primary-button), так как это надежнее текста
+    apply_button = page.locator("button.api-primary-button").first
+    
+    # Ждем, пока она станет активной
     expect(apply_button).to_be_enabled(timeout=10000)
     
-    # Теперь точно нажимаем
+    # Нажимаем
     apply_button.click()
     print("Нажал на 'Добавить отклик'")
     
