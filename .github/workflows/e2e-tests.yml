@@ -11,28 +11,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Шаг 1: Получение актуального кода из репозитория
     - name: Checkout code
       uses: actions/checkout@v4
 
-    # Шаг 2: Сборка и запуск сервисов (БД, backend, frontend) через Docker Compose
+    # Этот шаг создает временный файл .env для сборки в GitHub
+    - name: Create .env file
+      run: |
+        echo "POSTGRES_PASSWORD=testpassword123" > .env
+        echo "JWT_SECRET=test_secret_key_for_github_actions_at_least_32_chars_long" >> .env
+        echo "VACANCY_PROVIDER_MODE=trudvsem" >> .env
+        echo "VITE_API_MODE=true" >> .env
+
     - name: Build and run services
       run: |
         docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d --build
         
-    # Шаг 3: Ожидание инициализации контейнеров (15 секунд)
     - name: Wait for services to be ready
       run: sleep 15
 
-    # Шаг 4: Сборка Docker-образа для E2E-тестов
     - name: Build E2E test image
       run: docker build -t e2e-tests -f Dockerfile .
 
-    # Шаг 5: Запуск E2E-тестов в сети Docker Compose
     - name: Run E2E tests
       run: docker run --rm --network spb-project_default e2e-tests
         
-    # Шаг 6: Остановка контейнеров после завершения тестов (выполняется всегда)
     - name: Stop services
       if: always()
       run: docker compose -f docker-compose.yml -f docker-compose.frontend.yml down
