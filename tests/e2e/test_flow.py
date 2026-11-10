@@ -39,7 +39,7 @@ def test_user_registration_and_login(page: Page):
     print("ШАГ 8: Ищу вакансию 'Python'")
     page.fill("input[aria-label='Поиск вакансий']", "Python")
     page.click("button:has-text('Найти')")
-    expect(page.locator("text=Программист Python").first).to_be_visible(timeout=10000)
+    expect(page.get_by_role("heading", name="Python-разработчик")).to_be_visible(timeout=10000)
     
     # 9. Сохранение вакансии (ждем, пока кнопка станет активной)
     print("ШАГ 9: Нажимаю 'Сохранить'")
