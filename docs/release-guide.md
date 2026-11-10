@@ -59,7 +59,8 @@
 Для успешного прохождения E2E-теста (он ищет демо-вакансию «Python-разработчик»), необходимо на время теста переключить приложение в демо-режим. Установите `VACANCY_PROVIDER_MODE=demo` в файле `.env` и перезапустите контейнеры перед запуском Playwright.
 
     docker build -t e2e-tests -f Dockerfile .
-    docker run --rm --network spb-project_default e2e-tests
+    NETWORK_NAME=$(docker compose -f docker-compose.yml -f docker-compose.frontend.yml ps -q frontend | xargs docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}{{end}}')
+    docker run --rm --network "$NETWORK_NAME" e2e-tests
 
 ## 5. Остановка проекта
 Чтобы остановить все контейнеры **без удаления данных PostgreSQL**, выполните:
