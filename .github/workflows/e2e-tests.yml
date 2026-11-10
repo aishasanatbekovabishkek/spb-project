@@ -1,0 +1,39 @@
+name: E2E Tests (Playwright)
+
+on:
+  push:
+    branches: [ "main", "feature/*" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    
+    # Переменные для всех шагов
+    env:
+      POSTGRES_PASSWORD: testpassword123
+      JWT_SECRET: test_secret_key_for_github_actions_at_least_32_chars_long
+      VACANCY_PROVIDER_MODE: trudvsem
+      VITE_API_MODE: "true"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Build and run services
+      run: |
+        docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d --build
+        
+    - name: Wait for services to be ready
+      run: sleep 15
+
+    - name: Build E2E test image
+      run: docker build -t e2e-tests -f Dockerfile .
+
+    - name: Run E2E tests
+      run: docker run --rm --network spb-project_default e2e-tests
+        
+    - name: Stop services
+      if: always()
+      run: docker compose -f docker-compose.yml -f docker-compose.frontend.yml down
