@@ -17,9 +17,13 @@ import AuthPage from './components/AuthPage'
 import ApiVacanciesPage from './components/ApiVacanciesPage'
 import { API_MODE } from './config'
 import { hasAccessToken, setAccessToken } from './services/api'
+import { getSavedVacancies } from './services/savedVacancies'
 import ApiSavedVacanciesPage from './components/ApiSavedVacanciesPage'
 import ApiApplicationsPage from './components/ApiApplicationsPage'
-
+import {
+  getApplicationStatistics,
+  type ApplicationStatistics,
+} from './services/statistics'
 import './App.css'
 
 type Page = 'dashboard' | 'vacancies' | 'saved' | 'applications'
@@ -223,6 +227,35 @@ function App() {
   const [authenticated, setAuthenticated] = useState(
     () => hasAccessToken()
   )
+  const [serverStatistics, setServerStatistics] =
+    useState<ApplicationStatistics | null>(null)
+
+  useEffect(() => {
+    if (!API_MODE || !authenticated) {
+      return
+    }
+
+    let active = true
+
+    async function loadStatistics() {
+      try {
+        const result = await getApplicationStatistics()
+
+        if (active) {
+          setServerStatistics(result)
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки статистики:', error)
+        if (active) setServerStatistics(null)
+      }
+    }
+
+    void loadStatistics()
+
+    return () => {
+      active = false
+    }
+  }, [authenticated, page])
 
   function handleAuthBack() {
     setAuthenticated(hasAccessToken())
@@ -233,12 +266,47 @@ function App() {
     setAccessToken(null)
     setAuthenticated(false)
     setPage('dashboard')
+    setServerStatistics(null)
   }
   const [mobileMenu, setMobileMenu] = useState(false)
 
   const [savedIds, setSavedIds] = useState<string[]>(() =>
     readStorage('jobtracker_saved', [])
   )
+
+  const [serverSavedCount, setServerSavedCount] = useState(0)
+
+useEffect(() => {
+  if (!API_MODE || !authenticated) {
+    setServerSavedCount(0)
+    return
+  }
+
+  let active = true
+
+  async function refreshSavedCount() {
+    try {
+      const result = await getSavedVacancies(1, 1)
+
+      if (active) {
+        setServerSavedCount(result.total)
+      }
+    } catch (error) {
+      console.error('Не удалось получить количество вакансий:', error)
+    }
+  }
+
+  void refreshSavedCount()
+
+  window.addEventListener('jobtracker:saved-changed', refreshSavedCount)
+
+  return () => {
+    active = false
+    window.removeEventListener('jobtracker:saved-changed', refreshSavedCount)
+  }
+}, [authenticated, page])
+
+const savedCount = API_MODE ? serverSavedCount : savedIds.length
 
   const [applications, setApplications] = useState<Application[]>(() =>
     readStorage('jobtracker_applications', [])
@@ -498,8 +566,8 @@ function App() {
               <Icon size={19} />
               <span>{title}</span>
 
-              {id === 'saved' && savedIds.length > 0 && (
-                <span className="nav-count">{savedIds.length}</span>
+              {id === 'saved' && savedCount > 0 && (
+                <span className="nav-count">{savedCount}</span>
               )}
             </button>
           ))}
@@ -507,7 +575,7 @@ function App() {
 
         <div className="sidebar-bottom">
           <span className="demo-dot" />
-          Демонстрационный режим
+          {API_MODE ? 'Подключено к API' : 'Демонстрационный режим'}
         </div>
       </aside>
 
@@ -525,7 +593,9 @@ function App() {
           <span>Job Application Tracker</span>
 
           <div className="topbar-actions">
-            <span className="demo-label">MVP · DEMO</span>
+            <span className="demo-label">
+              {API_MODE ? 'MVP · API' : 'MVP · DEMO'}
+            </span>
 
             {API_MODE && authenticated ? (
               <button
@@ -593,31 +663,43 @@ function App() {
 
               <div className="stats-grid">
                 <div className="stat-card">
-                  <span>Доступно вакансий</span>
-                  <strong>{vacancies.length}</strong>
-                  <small>В демонстрационном каталоге</small>
+                  <span>Поиск вакансий</span>
+                  <strong>{API_MODE ? 'API' : vacancies.length}</strong>
+                  <small>
+                    {API_MODE
+                      ? 'Вакансии из внешнего источника'
+                      : 'В демонстрационном каталоге'}
+                  </small>
                 </div>
 
                 <div className="stat-card">
                   <span>Сохранённые</span>
-                  <strong>{savedIds.length}</strong>
+                  <strong>{savedCount}</strong>
                   <small>Интересующие предложения</small>
                 </div>
 
                 <div className="stat-card">
                   <span>Всего откликов</span>
-                  <strong>{applications.length}</strong>
+                  <strong>
+                    {API_MODE
+                      ? (authenticated
+                          ? (serverStatistics?.total_applications ?? '—')
+                          : '—')
+                      : applications.length}
+                  </strong>
                   <small>Добавлены в трекер</small>
                 </div>
 
                 <div className="stat-card">
                   <span>Офферы</span>
                   <strong>
-                    {
-                      applications.filter(
-                        (item) => item.status === 'offer'
-                      ).length
-                    }
+                    {API_MODE
+                      ? (authenticated
+                          ? (serverStatistics?.by_status.offer ?? '—')
+                          : '—')
+                      : applications.filter(
+                          (item) => item.status === 'offer',
+                        ).length}
                   </strong>
                   <small>Успешные результаты</small>
                 </div>
@@ -635,7 +717,22 @@ function App() {
                 </button>
               </div>
 
-              <VacancyGrid items={vacancies.slice(0, 3)} />
+              {API_MODE ? (
+                <div className="api-empty">
+                  <p>
+                    Находи реальные вакансии через подключённый сервис.
+                  </p>
+                  <button
+                    type="button"
+                    className="action-button"
+                    onClick={() => navigate('vacancies')}
+                  >
+                    Перейти к поиску
+                  </button>
+                </div>
+              ) : (
+                <VacancyGrid items={vacancies.slice(0, 3)} />
+              )}
             </>
           )}
 

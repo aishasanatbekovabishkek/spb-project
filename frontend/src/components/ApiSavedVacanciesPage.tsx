@@ -47,7 +47,12 @@ export default function ApiSavedVacanciesPage() {
 
     try {
       await deleteSavedVacancy(id)
-      setItems((current) => current.filter((item) => item.id !== id))
+
+      setItems((current) =>
+        current.filter((item) => item.id !== id),
+      )
+
+      window.dispatchEvent(new Event('jobtracker:saved-changed'))
     } catch (err) {
       setError(
         err instanceof ApiError
