@@ -24,11 +24,28 @@ docker compose --profile testing run --build --rm tests
 
 echo "=== ШАГ 3: Запуск E2E-тестов (Playwright) ==="
 
-# Функция для восстановления обычного режима (сработает даже при ошибке)
+# Функция для восстановления обычного режима (версия Леры)
 restore_backend() {
+    local exit_code=$?
+    trap - EXIT
+
     echo "Восстанавливаю обычную конфигурацию бэкенда..."
-    docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d --no-deps --force-recreate backend
-    echo "=== ГОТОВО! Все тесты пройдены. Проект доступен на http://localhost:8080 ==="
+
+    if ! docker compose \
+        -f docker-compose.yml \
+        -f docker-compose.frontend.yml \
+        up -d --no-deps --force-recreate backend; then
+        echo "ОШИБКА: Не удалось восстановить backend."
+        exit 1
+    fi
+
+    if [ "$exit_code" -eq 0 ]; then
+        echo "=== ГОТОВО! Все тесты пройдены. ==="
+    else
+        echo "ОШИБКА: Выполнение завершилось с кодом $exit_code."
+    fi
+
+    exit "$exit_code"
 }
 
 # Говорим скрипту: "что бы ни случилось, выполни restore_backend при выходе"
