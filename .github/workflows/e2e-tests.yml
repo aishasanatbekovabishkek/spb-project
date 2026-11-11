@@ -2,9 +2,15 @@ name: E2E Tests (Playwright)
 
 on:
   push:
-    branches: [ "main", "feature/*" ]
+    branches:
+      - "main"
+      - "feature/*"
+      - "lera/e2e-*"
+      - "aisha/e2e-ci"
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - "main"
+      - "lera/e2e-playwright"
 
 jobs:
   e2e-tests:
