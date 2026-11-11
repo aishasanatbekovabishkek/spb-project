@@ -28,7 +28,9 @@ echo "=== ШАГ 3: Запуск E2E-тестов (Playwright) ==="
 restore_backend() {
     echo "Восстанавливаю обычную конфигурацию бэкенда..."
     docker compose -f docker-compose.yml -f docker-compose.frontend.yml up -d --no-deps --force-recreate backend
+    echo "=== ГОТОВО! Все тесты пройдены. Проект доступен на http://localhost:8080 ==="
 }
+
 # Говорим скрипту: "что бы ни случилось, выполни restore_backend при выходе"
 trap restore_backend EXIT
 
@@ -40,5 +42,3 @@ VACANCY_PROVIDER_MODE=demo docker compose -f docker-compose.yml -f docker-compos
 docker build -t e2e-tests -f Dockerfile .
 NETWORK_NAME=$(docker compose -f docker-compose.yml -f docker-compose.frontend.yml ps -q frontend | xargs docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{end}}')
 docker run --rm --network "$NETWORK_NAME" e2e-tests
-
-echo "=== ГОТОВО! Все тесты пройдены. Проект доступен на http://localhost:8080 ==="
