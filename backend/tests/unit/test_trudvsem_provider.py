@@ -163,3 +163,40 @@ def test_hh_and_trudvsem_use_separate_rate_limit_keys():
         hh_client.close()
         trudvsem_client.close()
         cache.close()
+
+@pytest.fixture
+def tracked_search(monkeypatch):
+    monkeypatch.setattr("app.config.settings.provider_min_interval_seconds", 60)
+    queries = []
+
+    def handler(request):
+        queries.append(request.url.params["text"])
+        return httpx.Response(200, json={"status": "200", "results": {"vacancies": []}})
+
+    provider = make_provider(handler)
+    try:
+        yield provider, queries
+    finally:
+        provider.close()
+
+
+def test_whitespace_variants_share_cached_search(tracked_search):
+    provider, queries = tracked_search
+    first = provider.search("  Python\t   developer  ", page=1, per_page=5)
+    second = provider.search("Python developer", page=1, per_page=5)
+
+    assert queries == ["Python developer"]
+    assert second == first
+    assert second["is_stale"] is False
+
+
+def test_rate_limit_blocks_second_uncached_search(tracked_search):
+    provider, queries = tracked_search
+    provider.search("Python", page=1, per_page=5)
+
+    with pytest.raises(APIError) as error:
+        provider.search("Java", page=1, per_page=5)
+
+    assert error.value.status == 429
+    assert error.value.code == "RATE_LIMITED"
+    assert queries == ["Python"]
