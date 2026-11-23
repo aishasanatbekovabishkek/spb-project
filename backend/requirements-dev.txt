@@ -1,3 +1,4 @@
 -r requirements.txt
 pytest>=8,<10
 fakeredis[lua]>=2.26,<3
+pytest-cov>=7,<8
